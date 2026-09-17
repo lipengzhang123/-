@@ -107,16 +107,40 @@
 
     /* ---------- 3. 更新分类计数 ---------- */
     function updateCounts() {
-        var counts = { all: 0, "5s": 0, flow: 0, cost: 0, quality: 0, auto: 0, safety: 0, logistics: 0 };
+        var counts = { all: 0, yield: 0, substitute: 0, reduce: 0, headcount: 0, hours: 0, utilities: 0, auxiliary: 0, spare_parts: 0, indirect_staff: 0 };
         CASES.forEach(function (c) {
             counts.all++;
             if (counts[c.category] !== undefined) counts[c.category]++;
         });
-        var map = { all: "countAll", "5s": "count5s", flow: "countFlow", cost: "countCost", quality: "countQuality", auto: "countAuto", safety: "countSafety", logistics: "countLogistics" };
+
+        // 旧版 ID（兼容保留）
+        var map = { all: "countAll", yield: "countYield", substitute: "countSubstitute", reduce: "countReduce", headcount: "countHeadcount", hours: "countHours", utilities: "countUtilities", auxiliary: "countAuxiliary", spare_parts: "countSpareParts", indirect_staff: "countIndirectStaff" };
         for (var key in map) {
             var el = document.getElementById(map[key]);
             if (el) el.textContent = counts[key];
         }
+
+        // 新版 PC 卡片徽章
+        var pcMap = { yield: "pillYield", substitute: "pillSubstitute", reduce: "pillReduce", headcount: "pillHeadcount", hours: "pillHours", utilities: "pillUtilities", auxiliary: "pillAuxiliary", spare_parts: "pillSpareParts", indirect_staff: "pillIndirectStaff" };
+        for (var k in pcMap) {
+            var pel = document.getElementById(pcMap[k]);
+            if (pel) pel.textContent = "案例数 " + counts[k];
+        }
+
+        // 新版移动端手风琴徽章
+        var mobMap = { yield: "mobilePillYield", substitute: "mobilePillSubstitute", reduce: "mobilePillReduce", headcount: "mobilePillHeadcount", hours: "mobilePillHours", utilities: "mobilePillUtilities", auxiliary: "mobilePillAuxiliary", spare_parts: "mobilePillSpareParts", indirect_staff: "mobilePillIndirectStaff" };
+        for (var m in mobMap) {
+            var mel = document.getElementById(mobMap[m]);
+            if (mel) mel.textContent = "案例数 " + counts[m];
+        }
+
+        // 移动端分组汇总
+        var matEl = document.getElementById("mobileCountMaterial");
+        if (matEl) matEl.textContent = counts.yield + counts.substitute + counts.reduce;
+        var labEl = document.getElementById("mobileCountLabor");
+        if (labEl) labEl.textContent = counts.headcount + counts.hours;
+        var ovhEl = document.getElementById("mobileCountOverhead");
+        if (ovhEl) ovhEl.textContent = counts.utilities + counts.auxiliary + counts.spare_parts + counts.indirect_staff;
     }
 
     /* ---------- 4. 筛选逻辑 ---------- */
@@ -142,14 +166,11 @@
         });
     }
 
-    // 分类卡片点击
+    // 分类卡片点击 → 跳转到独立页面
     document.querySelectorAll(".category-card").forEach(function (card) {
         card.addEventListener("click", function () {
             var cat = this.getAttribute("data-category");
-            applyFilter(cat);
-            // 滚动到案例区域
-            var casesSection = document.getElementById("cases");
-            if (casesSection) casesSection.scrollIntoView({ behavior: "smooth" });
+            window.location.href = "category.html?cat=" + cat;
         });
     });
 
@@ -173,28 +194,38 @@
             + '  <div class="detail-tags">'
             + c.tags.map(function (t) { return '<span class="case-tag">' + t + '</span>'; }).join("")
             + '  </div>'
-            // 项目简介
+            // 问题原因
             + '  <div class="detail-section">'
-            + '    <h3>项目简介</h3>'
+            + '    <h3>问题原因</h3>'
             + '    <p>' + c.summary + '</p>'
             + '  </div>'
-            // 改善思路
+            // 解决思路与措施
             + '  <div class="detail-section">'
-            + '    <h3>改善思路与实施步骤</h3>'
+            + '    <h3>解决思路与措施</h3>'
             + '    <ul>'
-            + c.approach.map(function (a) { return '<li>' + a + '</li>'; }).join("")
+            + c.approach.map(function (a) {
+                // 解析markdown中的imagetour.lim图片URL并渲染为<img>
+                // 支持两种格式：1) Markdown链接 [url](url)  2) 裸URL https://...
+                var parts = a.split(/(\[https?:\/\/[^\]]+\]\(https?:\/\/[^)]+\.(?:png|jpg|jpeg|gif|webp)\)|https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp))/gi);
+                return '<li>' + parts.map(function (p) {
+                    if (/^https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp)/i.test(p)) {
+                        return '<br><img src="' + p + '" alt="实施步骤配图" style="max-width:100%;margin:8px 0;border-radius:4px;" onerror="this.style.display=\'none\'">';
+                    }
+                    // Markdown链接格式 [url](url) → 提取URL
+                    var mdMatch = p.match(/^\[(https?:\/\/[^\]]+\.(?:png|jpg|jpeg|gif|webp))\]\((https?:\/\/[^\)]+\.(?:png|jpg|jpeg|gif|webp))\)$/i);
+                    if (mdMatch) {
+                        return '<br><img src="' + mdMatch[1] + '" alt="实施步骤配图" style="max-width:100%;margin:8px 0;border-radius:4px;" onerror="this.style.display=\'none\'">';
+                    }
+                    // Markdown加粗 **text** → <strong>text</strong>
+                    p = p.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    return p;
+                }).join("") + '</li>';
+            }).join("")
             + '    </ul>'
             + '  </div>'
-            // 项目实拍图
+            // 项目成果
             + '  <div class="detail-section">'
-            + '    <h3>项目实拍图</h3>'
-            + '    <div class="detail-images">'
-            + c.images.map(function (src) { return '<img src="' + src + '" alt="项目实拍" onerror="this.src=\'https://via.placeholder.com/600x400/e4e9ed/5a6b7d?text=实拍图\'">'; }).join("")
-            + '    </div>'
-            + '  </div>'
-            // 落地成果
-            + '  <div class="detail-section">'
-            + '    <h3>落地成果</h3>'
+            + '    <h3>项目成果</h3>'
             + '    <div class="detail-results">'
             + c.results.map(function (r) {
                 return '<div class="detail-result-card"><div class="detail-result-num">' + r.num + '</div><div class="detail-result-label">' + r.label + '</div></div>';
@@ -272,12 +303,37 @@
         });
     });
 
-    /* ---------- 9. 初始化 ---------- */
+    /* ---------- 9. 手风琴折叠切换 ---------- */
+    window.toggleAccordion = function (btn) {
+        var item = btn.closest(".accordion-item");
+        if (!item) return;
+        var isOpen = item.getAttribute("data-open") === "true";
+        item.setAttribute("data-open", isOpen ? "false" : "true");
+    };
+
+    /* ---------- 10. 点击分类卡片筛选 ---------- */
+    window.filterByCategory = function (category) {
+        // 更新筛选标签高亮
+        var tags = document.querySelectorAll(".filter-tag");
+        tags.forEach(function (tag) {
+            tag.classList.toggle("active", tag.getAttribute("data-filter") === category);
+        });
+        currentFilter = category;
+        renderCases(category);
+        // 滚动到案例区
+        var casesSection = document.getElementById("cases");
+        if (casesSection) {
+            casesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    };
+
+    /* ---------- 11. 初始化 ---------- */
     function scrollToTop() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
     window.scrollToTop = scrollToTop;
 
+    console.log("main.js v4 loaded, CASES length:", CASES.length);
     updateCounts();
     renderCases("all");
 })();

@@ -1,24 +1,107 @@
-/**
- * 分类代码对照表（制造成本三级结构）
- * 
- * 一级：制造成本
- *   二级-直接材料类改善：yield(良率改善) / substitute(材料替代) / reduce(用量降低)
- *   二级-直接人工类改善：headcount(人数优化) / hours(工时优化)
- *   二级-制造费用类改善：utilities(水电气) / auxiliary(辅料) / spare_parts(备件) / indirect_staff(间接人员)
- */
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>改善案例 - 华工科技精益改善</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .category-header {
+            background: linear-gradient(135deg, #0052cc 0%, #003d99 100%);
+            color: #fff;
+            padding: 60px 0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+        }
+        .category-header h1 { font-size: 28px; margin-bottom: 8px; transform: translateY(25px); }
+        .category-header p { font-size: 14px; opacity: 0.9; }
+        .back-link {
+            display: inline-block; margin-top: 10px; color: #fff;
+            text-decoration: none; font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 6px 16px; border-radius: 20px; transition: background 0.2s;
+            transform: translateY(25px);
+        }
+        .back-link:hover { background: rgba(255,255,255,0.15); }
+        .category-cases-section { padding: 48px 0 80px; background: #f5f7fa; min-height: 400px; }
+        .simple-case-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; min-height: 200px; }
+        .simple-case-card {
+            background: #fff; border: 1px solid #e4e9ed; border-radius: 4px;
+            overflow: hidden; cursor: pointer;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .simple-case-card:hover {
+            box-shadow: 0 6px 20px rgba(0,82,204,0.12); transform: translateY(-2px);
+        }
+        .simple-case-img { width: 100%; height: 220px; overflow: hidden; background: #e4e9ed; }
+        .simple-case-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .simple-case-card:hover .simple-case-img img { transform: scale(1.05); }
+        .simple-case-info { padding: 16px 18px 18px; }
+        .simple-case-title {
+            font-size: 16px; font-weight: 700; color: #1a2332;
+            margin-bottom: 6px; line-height: 1.5;
+            display: -webkit-box; -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .simple-case-company { font-size: 13px; color: #5a6b7d; }
+        @media (max-width: 1024px) { .simple-case-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .simple-case-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="assets/logo.png" alt="华工科技" class="logo-img">
+            <span class="logo-text">华工科技精益改善案例展示平台</span>
+        </div>
+        <nav class="main-nav" id="mainNav">
+            <a href="index.html#banner" class="nav-link">首页</a>
+            <a href="index.html#categories" class="nav-link">分类</a>
+            <a href="index.html#cases" class="nav-link">案例</a>
+            <a href="index.html#about" class="nav-link">关于</a>
+            <a href="index.html#qrcode" class="nav-link">关注公众号</a>
+        </nav>
+        <button class="menu-toggle" id="menuToggle" aria-label="菜单"><span></span><span></span><span></span></button>
+    </div>
+</header>
+
+<div class="category-header" id="categoryHeader">
+    <h1 id="categoryTitle">加载中...</h1>
+    <p id="categoryDesc"></p>
+    <a href="index.html#categories" class="back-link">← 返回分类导航</a>
+</div>
+
+<section class="category-cases-section">
+    <div class="container">
+        <div class="simple-case-grid" id="caseGrid"></div>
+        <div class="no-result" id="noResult" style="display:none;"><p>该分类下暂无案例</p></div>
+    </div>
+</section>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+        <button class="modal-close" id="modalClose" aria-label="关闭">✕</button>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+
+<button class="back-top" id="backTop" aria-label="返回顶部">↑</button>
+
+<script>
 const CATEGORY_MAP = {
-    all: "全部案例",
-    yield: "良率改善",
-    substitute: "材料替代",
-    reduce: "用量降低",
-    headcount: "人数优化",
-    hours: "工时优化",
-    utilities: "水电气",
-    auxiliary: "辅料",
-    spare_parts: "备件",
-    indirect_staff: "间接人员"
+    all: "全部案例", yield: "良率改善", substitute: "材料替代", reduce: "用量降低",
+    headcount: "人数优化", hours: "工时优化", utilities: "水电气",
+    auxiliary: "辅料", spare_parts: "备件", indirect_staff: "间接人员"
 };
-const CASES = [
+
+// ===== 以下为同步脚本生成的数据，请勿手动修改 =====
+var CASES = [
     {
         "id": 1,
         "title": "装配车间5S目视化标杆打造",
@@ -622,3 +705,95 @@ const CASES = [
         "results": []
     }
 ];
+// ===== 数据结束 =====
+
+(function () {
+    "use strict";
+    function getParam(name) {
+        var url = window.location.search;
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = url.substr(1).match(reg);
+        return r != null ? decodeURIComponent(r[2]) : null;
+    }
+
+    var categoryCode = getParam("cat") || "all";
+    var caseGrid = document.getElementById("caseGrid");
+    var noResult = document.getElementById("noResult");
+    var modalOverlay = document.getElementById("modalOverlay");
+    var modalBody = document.getElementById("modalBody");
+    var modalClose = document.getElementById("modalClose");
+    var backTop = document.getElementById("backTop");
+    var menuToggle = document.getElementById("menuToggle");
+    var mainNav = document.getElementById("mainNav");
+
+    var categoryName = (CATEGORY_MAP && CATEGORY_MAP[categoryCode]) ? CATEGORY_MAP[categoryCode] : "全部案例";
+    document.getElementById("categoryTitle").textContent = categoryName;
+    document.title = categoryName + " - 华工科技精益改善";
+
+    function renderCases(filter) {
+        var html = "", count = 0;
+        CASES.forEach(function (c) {
+            if (filter === "all" || c.category === filter) {
+                html += '<div class="simple-case-card" data-id="' + c.id + '">'
+                    + '<div class="simple-case-img"><img src="' + c.cover + '" alt="' + c.title + '" loading="lazy" onerror="this.src=\'https://via.placeholder.com/600x400/0052cc/ffffff?text=HPS\'"></div>'
+                    + '<div class="simple-case-info"><div class="simple-case-title">' + c.title + '</div><div class="simple-case-company">' + c.company + '</div></div></div>';
+                count++;
+            }
+        });
+        caseGrid.innerHTML = html;
+        noResult.style.display = count === 0 ? "block" : "none";
+        document.querySelectorAll(".simple-case-card").forEach(function (card) {
+            card.addEventListener("click", function () { openModal(parseInt(this.getAttribute("data-id"))); });
+        });
+    }
+
+    function openModal(id) {
+        var c = CASES.find(function (x) { return x.id === id; });
+        if (!c) return;
+        var html = '<div class="detail-hero"><img src="' + c.cover + '" alt="' + c.title + '" onerror="this.src=\'https://via.placeholder.com/800x400/0052cc/ffffff?text=HPS\'"><span class="detail-badge">' + c.categoryName + '</span></div>'
+            + '<div class="detail-content"><h2 class="detail-title">' + c.title + '</h2>'
+            + '<div class="detail-meta"><span>' + c.company + '</span><span>🏅 ' + c.level + '</span><span>📅 ' + c.date + '</span></div>'
+            + '<div class="detail-tags">' + c.tags.map(function(t){return '<span class="case-tag">'+t+'</span>';}).join('') + '</div>'
+            + '<div class="detail-section"><h3>问题原因</h3><p>' + c.summary + '</p></div>'
+            + '<div class="detail-section"><h3>解决思路与措施</h3><ul>' + c.approach.map(function(a){
+                // 解析markdown中的imagetourl.lim图片URL并渲染为<img>
+                // 支持两种格式：1) Markdown链接 [url](url)  2) 裸URL https://...
+                var parts = a.split(/(\[https?:\/\/[^\]]+\]\(https?:\/\/[^)]+\.(?:png|jpg|jpeg|gif|webp)\)|https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp))/gi);
+                return '<li>' + parts.map(function (p) {
+                    if (/^https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp)/i.test(p)) {
+                        return '<br><img src="' + p + '" alt="实施步骤配图" style="max-width:100%;margin:8px 0;border-radius:4px;" onerror="this.style.display=\'none\'">';
+                    }
+                    // Markdown链接格式 [url](url) → 提取URL
+                    var mdMatch = p.match(/^\[(https?:\/\/[^\]]+\.(?:png|jpg|jpeg|gif|webp))\]\((https?:\/\/[^\)]+\.(?:png|jpg|jpeg|gif|webp))\)$/i);
+                    if (mdMatch) {
+                        return '<br><img src="' + mdMatch[1] + '" alt="实施步骤配图" style="max-width:100%;margin:8px 0;border-radius:4px;" onerror="this.style.display=\'none\'">';
+                    }
+                    // Markdown加粗 **text** → <strong>text</strong>
+                    p = p.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    return p;
+                }).join("") + '</li>';
+            }).join('') + '</ul></div>'
+            + '<div class="detail-section"><h3>项目成果</h3><div class="detail-results">'
+            + c.results.map(function(r){return '<div class="detail-result-card"><div class="detail-result-num">'+r.num+'</div><div class="detail-result-label">'+r.label+'</div></div>';}).join('')
+            + '</div></div></div>';
+        modalBody.innerHTML = html;
+        modalOverlay.classList.add("open");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeModal() { modalOverlay.classList.remove("open"); document.body.style.overflow = ""; }
+    if (modalClose) modalClose.addEventListener("click", closeModal);
+    if (modalOverlay) modalOverlay.addEventListener("click", function(e){ if(e.target===modalOverlay) closeModal(); });
+    document.addEventListener("keydown", function(e){ if(e.key==="Escape"&&modalOverlay.classList.contains("open")) closeModal(); });
+
+    if (menuToggle) menuToggle.addEventListener("click", function(){ menuToggle.classList.toggle("open"); mainNav.classList.toggle("open"); });
+    document.querySelectorAll(".nav-link").forEach(function(link){ link.addEventListener("click", function(){ menuToggle.classList.remove("open"); mainNav.classList.remove("open"); }); });
+
+    window.addEventListener("scroll", function(){ backTop.classList.toggle("show", window.scrollY > 400); });
+    if (backTop) backTop.addEventListener("click", function(){ window.scrollTo({top:0,behavior:"smooth"}); });
+
+    renderCases(categoryCode);
+})();
+</script>
+</body>
+</html>
