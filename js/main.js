@@ -2,6 +2,11 @@
 (function () {
     "use strict";
 
+    /* ---------- 钉钉免登配置 ---------- */
+    var params = new URLSearchParams(window.location.search);
+    var CORP_ID = params.get('corpid') || 'ding53c7b55d07974d7335c2f4657eb6378f';
+    var API_BASE = ''; // 同域相对路径，由 Cloudflare Worker Route 处理
+
     /* ---------- DOM 引用 ---------- */
     var bannerSlides = document.getElementById("bannerSlides");
     var bannerDots = document.getElementById("bannerDots");
@@ -174,6 +179,22 @@
         });
     });
 
+    /* ---------- 4.5. Markdown解析工具函数 ---------- */
+    function parseMarkdown(text) {
+        if (!text) return '';
+        // 1) Markdown链接 [url](url) → <img>（链接文本和地址都是图片URL）
+        text = text.replace(/\[(https?:\/\/[^\]]+\.(?:png|jpg|jpeg|gif|webp))\]\((https?:\/\/[^\)]+\.(?:png|jpg|jpeg|gif|webp))\)/gi, function (_, url1, url2) {
+            return '<br><img src="' + url1 + '" alt="配图" style="max-width:100%;margin:8px 0;border-radius:4px;" onerror="this.style.display=\'none\'">';
+        });
+        // 2) 裸图片URL → <img>（排除已在<img src="...">属性值中的URL）
+        text = text.replace(/(?<!src=")https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp)/gi, function (url) {
+            return '<br><img src="' + url + '" alt="配图" style="max-width:100%;margin:8px 0;border-radius:4px;" onerror="this.style.display=\'none\'">';
+        });
+        // 3) Markdown加粗 **text** → <strong>text</strong>
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        return text;
+    }
+
     /* ---------- 5. 案例详情弹窗 ---------- */
     function openModal(id) {
         var c = CASES.find(function (x) { return x.id === id; });
@@ -197,7 +218,7 @@
             // 问题原因
             + '  <div class="detail-section">'
             + '    <h3>问题原因</h3>'
-            + '    <p>' + c.summary + '</p>'
+            + '    <p>' + parseMarkdown(c.summary) + '</p>'
             + '  </div>'
             // 解决思路与措施
             + '  <div class="detail-section">'
@@ -327,13 +348,88 @@
         }
     };
 
-    /* ---------- 11. 初始化 ---------- */
+    /* ---------- 11. 钉钉免登与会话管理 ---------- */
+    
+    // 统一 API 请求封装（自动处理会话过期续期）
+    async function apiFetch(url, options) {
+        var res = await fetch(url, Object.assign({ credentials: 'include' }, options));
+        
+        // 【体验优化】会话过期自动重新免登
+        if (res.status === 401) {
+            console.warn('Session expired, re-authenticating...');
+            await initDingTalkAuth();
+            res = await fetch(url, Object.assign({ credentials: 'include' }, options));
+        }
+        
+        var data = await res.json();
+        if (data.errcode && data.errcode !== 0) {
+            throw new Error(data.errmsg || 'API Error');
+        }
+        return data;
+    }
+
+    // 初始化钉钉免登
+    function initDingTalkAuth() {
+        return new Promise(function(resolve, reject) {
+            if (typeof dd === 'undefined') {
+                console.warn('DingTalk JSAPI not available, skipping auth');
+                resolve();
+                return;
+            }
+            
+            dd.ready(function() {
+                dd.runtime.permission.requestAuthCode({
+                    corpId: CORP_ID,
+                    onSuccess: function(result) {
+                        apiFetch('/api/dingtalk/auth', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ authCode: result.code, corpId: CORP_ID })
+                        }).then(function(authData) {
+                            console.log('Auth success, userid:', authData.userid);
+                            resolve(authData);
+                        }).catch(reject);
+                    },
+                    onFail: function(err) {
+                        console.error('Get authCode failed:', err);
+                        reject(err);
+                    }
+                });
+            });
+        });
+    }
+
+    // 从后端加载案例数据（替代前端硬编码 CASES）
+    async function loadCasesFromBackend() {
+        try {
+            var res = await apiFetch('/api/getCase');
+            if (res.data && res.data.length > 0) {
+                CASES = res.data;
+                updateCounts();
+                renderCases(currentFilter);
+            }
+        } catch (e) {
+            console.error('Failed to load cases from backend:', e);
+            // 降级：使用本地 CASES 数据
+            updateCounts();
+            renderCases(currentFilter);
+        }
+    }
+
+    /* ---------- 12. 初始化 ---------- */
     function scrollToTop() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
     window.scrollToTop = scrollToTop;
 
-    console.log("main.js v4 loaded, CASES length:", CASES.length);
-    updateCounts();
-    renderCases("all");
+    console.log("main.js v5 loaded, CASES length:", CASES.length);
+    
+    // 先尝试免登并加载后端数据，失败则使用本地数据
+    initDingTalkAuth().then(function() {
+        loadCasesFromBackend();
+    }).catch(function() {
+        console.warn('Auth failed, using local data');
+        updateCounts();
+        renderCases("all");
+    });
 })();

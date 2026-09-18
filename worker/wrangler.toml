@@ -1,0 +1,12 @@
+name = "dingtalk-auth-worker"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# 环境变量（部署后在 Cloudflare Dashboard 中配置实际值）
+[vars]
+TARGET_CORP_ID = "ding53c7b55d07974d7335c2f4657eb6378f"
+
+# KV Namespace 绑定
+[[kv_namespaces]]
+binding = "DINGTALK_KV"
+id = "YOUR_KV_NAMESPACE_ID_HERE"

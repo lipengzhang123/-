@@ -535,35 +535,61 @@ const CASES = [
         ],
         "results": [
             {
-                "num": "142.8万",
-                "label": "累计降本 /年"
+                "num": "41.8万",
+                "label": "美纹纸替代全年节省成本 元"
+            },
+            {
+                "num": "25万",
+                "label": "模具采购全年降本 元"
             }
         ]
     },
     {
         "id": 18,
-        "title": "低成本替代",
+        "title": "低成本替代-模具",
         "category": "auxiliary",
         "categoryName": "辅料",
         "company": "高理感知",
         "level": "黑带",
         "date": "2026-03",
         "tags": [],
-        "cover": "https://i.imgs.ovh/2026/09/16/3b560b5d687172eac2bf41a4ffb05881.png",
+        "cover": "https://i.imgs.ovh/2026/09/17/1143c308041e3fa0b581f37a38883467.png",
         "images": [],
-        "summary": "辅材使用管控不足",
+        "summary": "原先模具是整套采购，并且只有一家供应商，缺少比价空间，采购成本偏高。[https://i.imgs.ovh/2026/09/17/aeda63725c4c669bb58b07a4ac0368a0.png](https://i.imgs.ovh/2026/09/17/aeda63725c4c669bb58b07a4ac0368a0.png)",
         "approach": [
-            "**低成本耗材替代高成本耗材：**&#x4EE5;超声波压接模具为例：取消整套请购，上、下模分开购买；开发二供，取消独家供应，模具整体单价下降24%，根据历史领用数据评估已累计降本8万元，预计全年降本25万元。[https://i.imgs.ovh/2026/09/16/2b7fdcfa61b3863e953d4f235a560f19.png](https://i.imgs.ovh/2026/09/16/2b7fdcfa61b3863e953d4f235a560f19.png)8cm美纹纸替代10cm美纹纸改善推广，通过打磨旧排线板，使排线板与美纹纸粘合力变大，消除美纹纸粘力不足导致散线问题，美纹纸单价下降20.16%，已累计节省成本34.8万元，预计全年节省成本41.8万元。[https://i.imgs.ovh/2026/09/16/cf7b6718517b1cb50431a99e750c8f0c.png](https://i.imgs.ovh/2026/09/16/cf7b6718517b1cb50431a99e750c8f0c.png)"
+            "改善从模具结构和供应商两方面着手，在不影响使用、保证质量的前提下降低模具费用。通过拆分模具结构，将上模、下模分开单独采购，采购灵活性提升；并开发第二家供应商，改变独家供货的情况，通过多家比价压低采购价格。[https://i.imgs.ovh/2026/09/17/1143c308041e3fa0b581f37a38883467.png](https://i.imgs.ovh/2026/09/17/1143c308041e3fa0b581f37a38883467.png)"
         ],
         "results": [
             {
-                "num": "142.8万",
-                "label": "累计降本 /年"
+                "num": "25万",
+                "label": "模具采购全年节省 元"
             }
         ]
     },
     {
         "id": 19,
+        "title": "减少用量-美纹纸",
+        "category": "auxiliary",
+        "categoryName": "辅料",
+        "company": "高理感知",
+        "level": "黑带",
+        "date": "2026-03",
+        "tags": [],
+        "cover": "https://i.imgs.ovh/2026/09/17/43501fd852e03a8c41104151125a5b4d.png",
+        "images": [],
+        "summary": "1、在可变动制造费用中，低值易耗品占比最高，达 41.2%；其中美纹纸在低值易耗品中占 24.8%，降本潜力最大。\n2、各板材均需要美纹纸来固定线缆，受板材附着力限制，为满足线缆固定强度要求，每套工装需使用 3 条美纹纸，耗材用量大成本高。[https://i.imgs.ovh/2026/09/17/2292d60d5c35ea0090decf79b6cfeb3f.png](https://i.imgs.ovh/2026/09/17/2292d60d5c35ea0090decf79b6cfeb3f.png)",
+        "approach": [
+            "线缆固定效果取决于美纹纸和板材之间的贴合摩擦力。通过打磨板材提升板面摩擦力，将固定线缆的美纹纸由 3 条减至 2 条；同时验证确认，8mm 美纹纸可替代原 10mm 规格并满足固定要求，这样既减少美纹纸使用条数，又实现规格优化。[https://i.imgs.ovh/2026/09/17/2955c59ceeca1018fdbd5d0dc1aef3b4.png](https://i.imgs.ovh/2026/09/17/2955c59ceeca1018fdbd5d0dc1aef3b4.png)"
+        ],
+        "results": [
+            {
+                "num": "41.8万",
+                "label": "美纹纸替代全年节省 元&#x20;"
+            }
+        ]
+    },
+    {
+        "id": 20,
         "title": "减少用量",
         "category": "auxiliary",
         "categoryName": "辅料",
@@ -585,7 +611,7 @@ const CASES = [
         ]
     },
     {
-        "id": 20,
+        "id": 21,
         "title": "重复使用",
         "category": "auxiliary",
         "categoryName": "辅料",
@@ -607,7 +633,7 @@ const CASES = [
         ]
     },
     {
-        "id": 21,
+        "id": 22,
         "title": "",
         "category": "yield",
         "categoryName": "良率改善",
