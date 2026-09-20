@@ -340,6 +340,21 @@ const CASES = [
     },
     {
         "id": 9,
+        "title": "",
+        "category": "yield",
+        "categoryName": "良率改善",
+        "company": "",
+        "level": "",
+        "date": "",
+        "tags": [],
+        "cover": "",
+        "images": [],
+        "summary": "",
+        "approach": [],
+        "results": []
+    },
+    {
+        "id": 10,
         "title": "热固不良",
         "category": "yield",
         "categoryName": "良率改善",
@@ -349,19 +364,22 @@ const CASES = [
         "tags": [],
         "cover": "https://img.remit.ee/i/nueTHc6e9pVx",
         "images": [],
-        "summary": "达因笔测试铝电极表面不合格\n\n，注塑电极片表面油污",
+        "summary": "供应商直接原因：冲压翻边加拉伸油防卡模，清洗不净，铝片油残留。\n\n供应商流出原因：清洗后未验证清洁有效性即出货。\n\n我司管理原因：来料验收基准无表面洁净度要求。",
         "approach": [
-            "临时导入等离子清洗设备，后续导入超声波清洗设备"
+            "解决思路：以工艺流程图、鱼骨图排查不良可能原因，逐项验证要因。",
+            "改善前：铝电极表面达因笔测试不合格，加热包热固后手可轻易掰开。",
+            "改善后：酒精清洁表面后达因笔测试合格，加热包热固后合格。",
+            "改善措施：1、供应商端：导入超声波清洗，优化原清洗工艺；出货前用38号达因笔抽测，合格后放行。2、我司端：进料验收增加电极片表面洁净度达因笔检验；加热包开班首检确认热固效果。"
         ],
         "results": [
             {
-                "num": "0",
-                "label": "不良率降至"
+                "num": "5.6%",
+                "label": "热固不良率从 降至0"
             }
         ]
     },
     {
-        "id": 10,
+        "id": 11,
         "title": "原材料成本高",
         "category": "substitute",
         "categoryName": "材料替代",
@@ -385,7 +403,7 @@ const CASES = [
         ]
     },
     {
-        "id": 11,
+        "id": 12,
         "title": "环氧胶在实际领用量较多",
         "category": "reduce",
         "categoryName": "用量降低",
@@ -407,7 +425,7 @@ const CASES = [
         ]
     },
     {
-        "id": 12,
+        "id": 13,
         "title": "工艺流程复杂",
         "category": "headcount",
         "categoryName": "人数优化",
@@ -429,7 +447,7 @@ const CASES = [
         ]
     },
     {
-        "id": 13,
+        "id": 14,
         "title": "线体及工位设计问题",
         "category": "hours",
         "categoryName": "工时优化",
@@ -452,7 +470,7 @@ const CASES = [
         ]
     },
     {
-        "id": 14,
+        "id": 15,
         "title": "开机数量多，烘干时间长",
         "category": "utilities",
         "categoryName": "水电气",
@@ -475,7 +493,7 @@ const CASES = [
         ]
     },
     {
-        "id": 15,
+        "id": 16,
         "title": "开灯电费高",
         "category": "utilities",
         "categoryName": "水电气",
@@ -497,7 +515,7 @@ const CASES = [
         ]
     },
     {
-        "id": 16,
+        "id": 17,
         "title": "设备能耗偏高",
         "category": "utilities",
         "categoryName": "水电气",
@@ -519,7 +537,7 @@ const CASES = [
         ]
     },
     {
-        "id": 17,
+        "id": 18,
         "title": "工艺优化",
         "category": "auxiliary",
         "categoryName": "辅料",
@@ -545,7 +563,7 @@ const CASES = [
         ]
     },
     {
-        "id": 18,
+        "id": 19,
         "title": "低成本替代-模具",
         "category": "auxiliary",
         "categoryName": "辅料",
@@ -562,12 +580,12 @@ const CASES = [
         "results": [
             {
                 "num": "25万",
-                "label": "模具采购全年节省 元"
+                "label": "模具采购全年节省 5000元*12个月"
             }
         ]
     },
     {
-        "id": 19,
+        "id": 20,
         "title": "减少用量-美纹纸",
         "category": "auxiliary",
         "categoryName": "辅料",
@@ -589,8 +607,8 @@ const CASES = [
         ]
     },
     {
-        "id": 20,
-        "title": "减少用量",
+        "id": 21,
+        "title": "减少用量-清洗酒精",
         "category": "auxiliary",
         "categoryName": "辅料",
         "company": "高理感知",
@@ -611,8 +629,8 @@ const CASES = [
         ]
     },
     {
-        "id": 21,
-        "title": "重复使用",
+        "id": 22,
+        "title": "重复使用-酒精",
         "category": "auxiliary",
         "categoryName": "辅料",
         "company": "高理感知",
@@ -633,7 +651,59 @@ const CASES = [
         ]
     },
     {
-        "id": 22,
+        "id": 23,
+        "title": "重复使用-橡皮筋",
+        "category": "auxiliary",
+        "categoryName": "辅料",
+        "company": "高理感知",
+        "level": "黑带",
+        "date": "2026-03",
+        "tags": [],
+        "cover": "https://i.imgs.ovh/2026/09/16/3b560b5d687172eac2bf41a4ffb05881.png",
+        "images": [],
+        "summary": "辅材使用管控不足",
+        "approach": [
+            "**耗材重复使用：**&#x5143;件清洗用工业酒精清洗完元件后，重复用于插壳点胶机头道清洗，节省酒精用量，元件每天产生63kg二次利用酒精，根据平均单价计算，已累计节省15.7万元，预计全年节省18.9万元。[https://i.imgs.ovh/2026/09/16/8c73b752bbc0aa1d93345558b85eed88.png](https://i.imgs.ovh/2026/09/16/8c73b752bbc0aa1d93345558b85eed88.png)捆线橡皮筋在其他工序拆下时不使用刀片割断或报废，将拆下来的橡皮筋放在物料盒内回收重复使用，已累计节省成本8.3万元，预计全年可节省橡皮筋成本10万元。[https://i.imgs.ovh/2026/09/16/a3691d3f0061e1b3aa55e43d309b38e6.png](https://i.imgs.ovh/2026/09/16/a3691d3f0061e1b3aa55e43d309b38e6.png)"
+        ],
+        "results": [
+            {
+                "num": "142.8万",
+                "label": "累计降本 /年"
+            }
+        ]
+    },
+    {
+        "id": 24,
+        "title": "",
+        "category": "yield",
+        "categoryName": "良率改善",
+        "company": "",
+        "level": "",
+        "date": "",
+        "tags": [],
+        "cover": "",
+        "images": [],
+        "summary": "",
+        "approach": [],
+        "results": []
+    },
+    {
+        "id": 25,
+        "title": "",
+        "category": "yield",
+        "categoryName": "良率改善",
+        "company": "",
+        "level": "",
+        "date": "",
+        "tags": [],
+        "cover": "",
+        "images": [],
+        "summary": "",
+        "approach": [],
+        "results": []
+    },
+    {
+        "id": 26,
         "title": "",
         "category": "yield",
         "categoryName": "良率改善",

@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css?v=4">
+    <!-- 钉钉 JSAPI SDK -->
+    <script src="https://g.alicdn.com/dingding/dingtalk-jsapi/3.0.25/dingtalk.open.js"></script>
 </head>
 <body>
 
@@ -82,7 +84,7 @@
             <h2>项目分类导航</h2>
             <p>按改善领域快速筛选相关案例</p>
         </div>
-
+    
         <!-- PC 视图：三列思维导图式布局 -->
         <div class="mindmap-root">
             <div class="root-node">制造成本</div>
@@ -136,7 +138,7 @@
                     </div>
                 </div>
             </div>
-
+    
             <!-- 一级分支 2: 直接人工类改善 -->
             <div class="pillar-col" id="col-labor">
                 <div class="pillar-header">二、直接人工类改善</div>
@@ -167,7 +169,7 @@
                     </div>
                 </div>
             </div>
-
+    
             <!-- 一级分支 3: 制造费用类改善 -->
             <div class="pillar-col" id="col-overhead">
                 <div class="pillar-header">三、制造费用类改善</div>
@@ -223,7 +225,7 @@
                 </div>
             </div>
         </div>
-
+    
         <!-- 移动端视图：折叠手风琴 -->
         <div class="category-accordion-mobile">
             <!-- Accordion 1: 直接材料类改善 -->
@@ -264,7 +266,7 @@
                     </div>
                 </div>
             </div>
-
+    
             <!-- Accordion 2: 直接人工类改善 -->
             <div class="accordion-item" data-open="true">
                 <button class="accordion-toggle" onclick="toggleAccordion(this)" type="button">
@@ -296,7 +298,7 @@
                     </div>
                 </div>
             </div>
-
+    
             <!-- Accordion 3: 制造费用类改善 -->
             <div class="accordion-item" data-open="true">
                 <button class="accordion-toggle" onclick="toggleAccordion(this)" type="button">
@@ -367,12 +369,12 @@
             <button class="filter-tag" data-filter="spare_parts">备件</button>
             <button class="filter-tag" data-filter="indirect_staff">间接人员</button>
         </div>
-
+    
         <!-- 案例卡片网格 -->
         <div class="case-grid" id="caseGrid">
             <!-- 由 JS 动态生成 -->
         </div>
-
+    
         <!-- 无结果提示 -->
         <div class="no-result" id="noResult" style="display:none;">
             <p>该分类下暂无案例</p>
@@ -450,5 +452,149 @@
 
 <script src="js/data.js?v=3"></script>
 <script src="js/main.js?v=3"></script>
+
+<!-- 钉钉免登与API对接逻辑 -->
+<script>
+(function() {
+    const API_BASE = 'https://hgkj.eu.cc';
+    let sessionId = sessionStorage.getItem('sessionId');
+
+    // 1. 钉钉免登：获取 authCode 并换取 sessionId
+    async function initDingTalkAuth() {
+        if (typeof dd === 'undefined' || !dd.runtime) return; // 非钉钉环境跳过
+        try {
+            dd.runtime.permission.requestAuthCode({
+                corpId: 'ding53c7b55d07974d7335c2f4657eb6378f', // TODO: 替换为你的企业 CorpId
+                onSuccess: async function(result) {
+                    console.log('[DingTalk] AuthCode:', result.code);
+                    await exchangeSession(result.code);
+                },
+                onFail: function(err) {
+                    console.error('[DingTalk] requestAuthCode failed:', err);
+                }
+            });
+        } catch (e) {
+            console.warn('[DingTalk] SDK not ready or error:', e);
+        }
+    }
+    
+    // 2. 用 authCode 换取后端 sessionId
+    async function exchangeSession(authCode) {
+        try {
+            const res = await fetch(API_BASE + '/api/dingtalk/auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ authCode })
+            });
+            const data = await res.json();
+            if (data.sessionId) {
+                sessionId = data.sessionId;
+                sessionStorage.setItem('sessionId', sessionId);
+                console.log('[Auth] Session established, userid:', data.userid);
+                loadCases(); // 登录成功后加载案例
+            } else {
+                console.error('[Auth] No sessionId returned:', data);
+            }
+        } catch (e) {
+            console.error('[Auth] Exchange session failed:', e);
+        }
+    }
+    
+    // 3. 从后端加载案例数据（替代本地 data.js）
+    async function loadCases(tag) {
+        if (!sessionId) {
+            console.warn('[Cases] No sessionId, skipping API call');
+            return;
+        }
+        try {
+            const url = new URL(API_BASE + '/api/cases');
+            if (tag && tag !== 'all') url.searchParams.set('tag', tag);
+            const res = await fetch(url, {
+                headers: { 'X-Session-Id': sessionId }
+            });
+            const data = await res.json();
+            if (data.cases && Array.isArray(data.cases)) {
+                renderCases(data.cases);
+                updatePills(data.counts || {});
+            }
+        } catch (e) {
+            console.error('[Cases] Load failed:', e);
+        }
+    }
+    
+    // 4. 渲染案例卡片到页面
+    function renderCases(cases) {
+        const grid = document.getElementById('caseGrid');
+        const noResult = document.getElementById('noResult');
+        if (!grid) return;
+        if (cases.length === 0) {
+            grid.innerHTML = '';
+            if (noResult) noResult.style.display = 'block';
+            return;
+        }
+        if (noResult) noResult.style.display = 'none';
+        grid.innerHTML = cases.map(c => `
+            <div class="case-card" onclick="openCaseDetail('${c.id}')">
+                <div class="card-img"><img src="${c.cover || ''}" alt="${c.title}"></div>
+                <div class="card-info">
+                    <h3>${c.title}</h3>
+                    <p>${c.summary || ''}</p>
+                    <span class="tag">${c.tag || ''}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // 5. 更新分类导航上的案例数
+    function updatePills(counts) {
+        Object.entries(counts).forEach(([key, count]) => {
+            const map = {
+                yield: ['pillYield', 'mobilePillYield'],
+                substitute: ['pillSubstitute', 'mobilePillSubstitute'],
+                reduce: ['pillReduce', 'mobilePillReduce'],
+                headcount: ['pillHeadcount', 'mobilePillHeadcount'],
+                hours: ['pillHours', 'mobilePillHours'],
+                utilities: ['pillUtilities', 'mobilePillUtilities'],
+                auxiliary: ['pillAuxiliary', 'mobilePillAuxiliary'],
+                spare_parts: ['pillSpareParts', 'mobilePillSpareParts'],
+                indirect_staff: ['pillIndirectStaff', 'mobilePillIndirectStaff']
+            };
+            (map[key] || []).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '案例数 ' + count;
+            });
+        });
+    }
+    
+    // 6. 绑定筛选标签点击事件
+    function bindFilterEvents() {
+        const filterBar = document.getElementById('filterBar');
+        if (!filterBar) return;
+        filterBar.addEventListener('click', function(e) {
+            if (e.target.classList.contains('filter-tag')) {
+                filterBar.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                loadCases(e.target.dataset.filter);
+            }
+        });
+    }
+    
+    // 7. 初始化
+    window.openCaseDetail = function(id) {
+        console.log('Open case detail:', id);
+        // TODO: 调用 /api/cases/:id 接口展示详情弹窗
+    };
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            bindFilterEvents();
+            initDingTalkAuth();
+        });
+    } else {
+        bindFilterEvents();
+        initDingTalkAuth();
+    }
+})();
+</script>
 </body>
 </html>
