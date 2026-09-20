@@ -459,9 +459,19 @@
     const API_BASE = 'https://hgkj.eu.cc';
     let sessionId = sessionStorage.getItem('sessionId');
 
+    // 0. 微信环境拦截：非钉钉环境禁止访问
+    if (navigator.userAgent.indexOf('MicroMessenger') !== -1) {
+        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;padding:2rem;font-family:sans-serif;"><div><h2>⚠️ 请在钉钉中打开</h2><p style="margin-top:1rem;color:#666;">本平台仅支持在钉钉客户端内访问<br>请将链接复制到钉钉中重新打开</p></div></div>';
+        return;
+    }
+
     // 1. 钉钉免登：获取 authCode 并换取 sessionId
     async function initDingTalkAuth() {
-        if (typeof dd === 'undefined' || !dd.runtime) return; // 非钉钉环境跳过
+        if (typeof dd === 'undefined' || !dd.runtime) {
+            console.warn('[DingTalk] Not in DingTalk environment, loading cases without auth');
+            loadCases(); // 非钉钉环境也加载案例(降级模式)
+            return;
+        }
         try {
             dd.runtime.permission.requestAuthCode({
                 corpId: 'ding53c7b55d07974d7335c2f4657eb6378f', // TODO: 替换为你的企业 CorpId
@@ -471,10 +481,12 @@
                 },
                 onFail: function(err) {
                     console.error('[DingTalk] requestAuthCode failed:', err);
+                    loadCases(); // 免登失败也尝试加载案例
                 }
             });
         } catch (e) {
             console.warn('[DingTalk] SDK not ready or error:', e);
+            loadCases(); // SDK异常也尝试加载案例
         }
     }
     
@@ -494,28 +506,28 @@
                 loadCases(); // 登录成功后加载案例
             } else {
                 console.error('[Auth] No sessionId returned:', data);
+                loadCases(); // 无sessionId也尝试加载案例
             }
         } catch (e) {
             console.error('[Auth] Exchange session failed:', e);
+            loadCases(); // 接口异常也尝试加载案例
         }
     }
     
     // 3. 从后端加载案例数据（替代本地 data.js）
     async function loadCases(tag) {
-        if (!sessionId) {
-            console.warn('[Cases] No sessionId, skipping API call');
-            return;
-        }
         try {
             const url = new URL(API_BASE + '/api/cases');
             if (tag && tag !== 'all') url.searchParams.set('tag', tag);
-            const res = await fetch(url, {
-                headers: { 'X-Session-Id': sessionId }
-            });
+            const headers = {};
+            if (sessionId) headers['X-Session-Id'] = sessionId;
+            const res = await fetch(url, { headers });
             const data = await res.json();
             if (data.cases && Array.isArray(data.cases)) {
                 renderCases(data.cases);
                 updatePills(data.counts || {});
+            } else {
+                console.warn('[Cases] Invalid response:', data);
             }
         } catch (e) {
             console.error('[Cases] Load failed:', e);
