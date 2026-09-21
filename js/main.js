@@ -402,11 +402,14 @@
     // 从后端加载案例数据（替代前端硬编码 CASES）
     async function loadCasesFromBackend() {
         try {
-            var res = await apiFetch('/api/getCase');
-            if (res.data && res.data.length > 0) {
-                CASES = res.data;
+            var res = await fetch('/api/cases?page=1&size=200');
+            var json = await res.json();
+            if (json.errcode === 0 && json.data && json.data.length > 0) {
+                window.CASES = json.data;
                 updateCounts();
                 renderCases(currentFilter);
+            } else {
+                throw new Error(json.errmsg || 'Empty response');
             }
         } catch (e) {
             console.error('Failed to load cases from backend:', e);
@@ -424,12 +427,6 @@
 
     console.log("main.js v5 loaded, CASES length:", CASES.length);
     
-    // 先尝试免登并加载后端数据，失败则使用本地数据
-    initDingTalkAuth().then(function() {
-        loadCasesFromBackend();
-    }).catch(function() {
-        console.warn('Auth failed, using local data');
-        updateCounts();
-        renderCases("all");
-    });
+    // 直接从API加载实时数据（无需鉴权），失败则降级到本地数据
+    loadCasesFromBackend();
 })();
