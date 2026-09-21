@@ -412,14 +412,19 @@
                 window.CASES = json.data;
                 updateCounts();
                 renderCases(currentFilter);
+                console.log('✅ Loaded', json.data.length, 'cases from AI Table');
             } else {
                 throw new Error(json.errmsg || 'Empty response');
             }
         } catch (e) {
-            console.error('Failed to load cases from backend:', e);
-            // 降级：使用本地 CASES 数据
-            updateCounts();
-            renderCases(currentFilter);
+            console.error(' Failed to load cases from backend:', e);
+            // ❗ 移除降级逻辑：API失败时显示错误提示，不使用本地硬编码数据
+            document.getElementById('caseGrid').innerHTML = 
+                '<div style="text-align:center;padding:60px 20px;color:#999;">' +
+                '<p style="font-size:18px;margin-bottom:12px;">⚠️ 数据加载失败</p>' +
+                '<p style="font-size:14px;">请检查网络连接或联系管理员</p>' +
+                '<p style="font-size:12px;margin-top:8px;color:#ccc;">' + e.message + '</p>' +
+                '</div>';
         }
     }
 
