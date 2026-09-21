@@ -9,7 +9,7 @@
     <script>
     (function(){
         var ua = navigator.userAgent || '';
-        var isDingTalk = /DingTalk|AliApp\(DT/.test(ua);
+        var isDingTalk = /DingTalk|AliApp\(DT/i.test(ua); // 不区分大小写
         if (!isDingTalk) {
             document.documentElement.innerHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>请在钉钉中打开</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;padding:2rem;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f7fa;"><div><h2 style="font-size:1.5rem;margin-bottom:1rem;color:#333;">⚠️ 请在钉钉中打开</h2><p style="color:#666;line-height:1.8;">本平台仅支持在钉钉客户端内访问<br>请将链接复制到钉钉中重新打开</p></div></body></html>';
             throw 'Not in DingTalk';
