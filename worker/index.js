@@ -11,13 +11,22 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname;
     const origin = request.headers.get('Origin') || '';
+    const ua = request.headers.get('User-Agent') || '';
+
+    // 【关键】Worker 层环境拦截（优先级最高）
+    const isDingTalk = /DingTalk|AliApp\(DT/.test(ua);
+    if (!isDingTalk && (pathname === '/' || pathname === '')) {
+      return new Response(`<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>请在钉钉中打开</title></head><body style="display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;background:#f5f7fa;"><div style="text-align:center;padding:2rem;"><h2 style="font-size:1.5rem;color:#1a1a1a;margin-bottom:1rem;">⚠️ 请在钉钉中打开</h2><p style="color:#666;line-height:1.8;">本平台仅支持在钉钉客户端内访问<br>请将链接复制到钉钉中重新打开</p></div></body></html>`, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+      });
+    }
 
     // 【关键】GitHub Pages 静态资源代理（必须在 API 路由之前）
     if (pathname === '/' || pathname === '' || 
         pathname.startsWith('/css/') || pathname.startsWith('/js/') || 
         pathname.startsWith('/assets/') || pathname.endsWith('.html')) {
-      const timestamp = Date.now();
-      const ghUrl = 'https://lipengzhang123.github.io/lpz-test' + pathname + '?_t=' + timestamp;
+      const ghUrl = 'https://lipengzhang123.github.io/lpz-test' + pathname + '?_v=' + Date.now();
       try {
         const resp = await fetch(ghUrl, { cf: { cacheTtl: 0 } });
         return new Response(resp.body, {
