@@ -69,6 +69,11 @@ export default {
       return handleGetCase(request, env);
     }
 
+    // 【新增】实时查询AI表格案例数据
+    if (url.pathname === '/api/cases' && request.method === 'GET') {
+      return handleCasesRealtime(request, env, accessToken);
+    }
+
     return jsonResponse({ errcode: 404, errmsg: 'Not Found' }, 404);
   }
 };
@@ -191,4 +196,119 @@ async function handleGetCase(request, env) {
   const cases = casesJson ? JSON.parse(casesJson) : [];
 
   return jsonResponse({ errcode: 0, data: cases });
+}
+
+// 【新增】实时查询AI表格案例数据（无需鉴权，公开访问）
+async function handleCasesRealtime(request, env, token) {
+  try {
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const size = parseInt(url.searchParams.get('size') || '20');
+    const tag = url.searchParams.get('tag') || '';
+
+    // 调用钉钉AI表格API查询记录
+    const aitableUrl = `https://api.dingtalk.com/v1.0/aiTables/${env.AITABLE_BASE_ID}/tables/${env.AITABLE_TABLE_ID}/records/query`;
+    const res = await fetch(aitableUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-acs-dingtalk-access-token': token
+      },
+      body: JSON.stringify({
+        maxResults: size,
+        offset: (page - 1) * size,
+        filter: tag ? { conditions: [{ fieldName: 'tags', operator: 'contains', value: tag }] } : undefined
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.errorCode) {
+      console.error('[AITable] API Error:', data);
+      return jsonResponse({ errcode: 502, errmsg: data.errorMessage || 'AITable API Error' }, 502);
+    }
+
+    // 转换字段格式（与同步脚本逻辑一致）
+    const CATEGORY_CODE_MAP = {
+      "bJdSTtzMUW": "yield", "e6sP6sLGsf": "substitute", "Tirvo6R5pZ": "reduce",
+      "sjo1yrAhRv": "headcount", "2qPo9wD43L": "hours", "aZGSARYjqt": "utilities",
+      "tlSppxad6o": "auxiliary", "Uo44qZUI1A": "spare_parts", "BWGbmRyWxV": "indirect_staff"
+    };
+    const CATEGORY_NAME_MAP = {
+      "yield": "良率改善", "substitute": "材料替代", "reduce": "用量降低",
+      "headcount": "人数优化", "hours": "工时优化", "utilities": "水电气",
+      "auxiliary": "辅料", "spare_parts": "备件", "indirect_staff": "间接人员"
+    };
+    const FIELD_MAP = {
+      "title": "MS8cFpk", "category_id": "yqo08Rp", "company": "HaEWw6Q",
+      "level_id": "noJlzRG", "date": "320X8MN", "tags": "bXPiAq4",
+      "cover": "QhNdlR8", "summary": "J7G36oG", "approach": "YxuDAfu", "results": "RraZcE8"
+    };
+
+    const records = data.result?.records || [];
+    const cases = records.map((record, index) => {
+      const cells = record.cells || {};
+      const categoryId = cells[FIELD_MAP.category_id]?.id || "";
+      const categoryCode = CATEGORY_CODE_MAP[categoryId] || "yield";
+      const tagsData = cells[FIELD_MAP.tags] || [];
+      const tags = Array.isArray(tagsData) ? tagsData.map(t => t.name || "").filter(Boolean) : [];
+      const approachMd = cells[FIELD_MAP.approach]?.markdown || "";
+      const resultsMd = cells[FIELD_MAP.results]?.markdown || "";
+      const summary = (cells[FIELD_MAP.summary]?.markdown || "").trim();
+
+      // 解析approach为列表
+      const approach = approachMd.split(/\n\s*\n/).filter(p => p.trim()).map(p => {
+        p = p.trim();
+        return p.startsWith('• ') || p.startsWith('- ') ? p.substring(2).trim() : p;
+      });
+
+      // 解析results
+      const results = [];
+      if (resultsMd) {
+        const items = resultsMd.split(/•\s*/).filter(i => i.trim());
+        for (const item of items) {
+          const match = item.match(/^([^\d]*?)\s*([\d][\d.%万→\-]*)\s*(.*?)$/);
+          if (match) {
+            const label = `${match[1].trim()} ${match[3].trim()}`.trim();
+            results.push({ num: match[2].trim(), label: label || match[2].trim() });
+          } else {
+            results.push({ num: item.trim(), label: "" });
+          }
+        }
+      }
+
+      // 格式化日期
+      let dateStr = cells[FIELD_MAP.date] || "";
+      try {
+        dateStr = new Date(dateStr.replace('+08:00', '+0800')).toISOString().slice(0, 7);
+      } catch {}
+
+      return {
+        id: (page - 1) * size + index + 1,
+        title: cells[FIELD_MAP.title] || "",
+        category: categoryCode,
+        categoryName: CATEGORY_NAME_MAP[categoryCode] || "良率改善",
+        company: cells[FIELD_MAP.company] || "",
+        level: cells[FIELD_MAP.level_id]?.name || "",
+        date: dateStr,
+        tags,
+        cover: cells[FIELD_MAP.cover] || "",
+        images: [],
+        summary,
+        approach,
+        results
+      };
+    });
+
+    return jsonResponse({
+      errcode: 0,
+      data: cases,
+      total: data.result?.totalCount || records.length,
+      page,
+      size
+    });
+  } catch (e) {
+    console.error('[AITable] Exception:', e.message);
+    return jsonResponse({ errcode: 500, errmsg: e.message }, 500);
+  }
 }
