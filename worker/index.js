@@ -9,7 +9,26 @@ const DINGTALK_USERINFO_URL = 'https://oapi.dingtalk.com/topapi/v2/user/getuseri
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const pathname = url.pathname;
     const origin = request.headers.get('Origin') || '';
+
+    // 【关键】GitHub Pages 静态资源代理（必须在 API 路由之前）
+    if (pathname === '/' || pathname === '' || 
+        pathname.startsWith('/css/') || pathname.startsWith('/js/') || 
+        pathname.startsWith('/assets/') || pathname.endsWith('.html')) {
+      const timestamp = Date.now();
+      const ghUrl = 'https://lipengzhang123.github.io/lpz-test' + pathname + '?_t=' + timestamp;
+      try {
+        const resp = await fetch(ghUrl, { cf: { cacheTtl: 0 } });
+        return new Response(resp.body, {
+          status: resp.status,
+          headers: resp.headers
+        });
+      } catch (e) {
+        console.error('[Proxy] Failed to fetch from GitHub Pages:', e.message);
+        return jsonResponse({ error: 'Upstream Error' }, 502);
+      }
+    }
 
     // 【安全】来源校验
     if (!origin.includes('hgkj.eu.cc') && !origin.includes('localhost') && !origin.includes('127.0.0.1')) {

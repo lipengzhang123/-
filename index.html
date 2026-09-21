@@ -5,6 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>华工科技精益改善 · 案例展示平台</title>
+    <!-- 环境检测：非钉钉客户端立即拦截 -->
+    <script>
+    (function(){
+        var ua = navigator.userAgent || '';
+        var isDingTalk = /DingTalk|AliApp\(DT/.test(ua);
+        if (!isDingTalk) {
+            document.documentElement.innerHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>请在钉钉中打开</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;padding:2rem;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f5f7fa;"><div><h2 style="font-size:1.5rem;margin-bottom:1rem;color:#333;">⚠️ 请在钉钉中打开</h2><p style="color:#666;line-height:1.8;">本平台仅支持在钉钉客户端内访问<br>请将链接复制到钉钉中重新打开</p></div></body></html>';
+            throw 'Not in DingTalk';
+        }
+    })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
