@@ -399,12 +399,16 @@
         });
     }
 
-    // 从后端加载案例数据（替代前端硬编码 CASES）
+    // 从后端加载案例数据（需先免登建立Session）
     async function loadCasesFromBackend() {
         try {
-            var res = await fetch('/api/cases?page=1&size=200');
-            var json = await res.json();
-            if (json.errcode === 0 && json.data && json.data.length > 0) {
+            // 1. 先确保钉钉免登完成，建立Session
+            await initDingTalkAuth();
+            
+            // 2. 使用 apiFetch 自动携带 Cookie 并处理401续期
+            var json = await apiFetch('/api/cases?page=1&size=200');
+            
+            if (json.data && json.data.length > 0) {
                 window.CASES = json.data;
                 updateCounts();
                 renderCases(currentFilter);
