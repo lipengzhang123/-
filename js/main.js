@@ -387,6 +387,11 @@
                             body: JSON.stringify({ authCode: result.code, corpId: CORP_ID })
                         }).then(function(authData) {
                             console.log('Auth success, userid:', authData.userid);
+                            // 【新增】将sessionId存入Cookie，供后续API请求使用
+                            if (authData.sessionId) {
+                                document.cookie = 'sessionId=' + authData.sessionId + '; path=/; max-age=3600';
+                                console.log('Session cookie set:', authData.sessionId);
+                            }
                             resolve(authData);
                         }).catch(reject);
                     },
