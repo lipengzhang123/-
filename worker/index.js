@@ -23,15 +23,25 @@ export default {
     }
 
     // 【关键】GitHub Pages 静态资源代理（必须在 API 路由之前）
-    if (pathname === '/' || pathname === '' || 
+    if (pathname === '/' || pathname === '' || pathname === '/v2' || pathname === '/v3' ||
         pathname.startsWith('/css/') || pathname.startsWith('/js/') || 
         pathname.startsWith('/assets/') || pathname.endsWith('.html')) {
-      const ghUrl = 'https://lipengzhang123.github.io/lpz-test' + pathname + '?_v=' + Date.now();
+      const ghPath = (pathname === '/v2' || pathname === '/v3') ? '/' : pathname;
+      const ghUrl = 'https://lipengzhang123.github.io/lpz-test' + ghPath + '?_v=' + Date.now();
       try {
         const resp = await fetch(ghUrl, { cf: { cacheTtl: 0 } });
+        
+        // 【关键】禁止钉钉WebView缓存HTML和JS
+        const newHeaders = new Headers(resp.headers);
+        if (pathname === '/' || pathname === '' || pathname.endsWith('.html') || pathname.startsWith('/js/')) {
+          newHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+          newHeaders.set('Pragma', 'no-cache');
+          newHeaders.set('Expires', '0');
+        }
+        
         return new Response(resp.body, {
           status: resp.status,
-          headers: resp.headers
+          headers: newHeaders
         });
       } catch (e) {
         console.error('[Proxy] Failed to fetch from GitHub Pages:', e.message);
