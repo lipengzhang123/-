@@ -26,7 +26,13 @@ export default {
     if (pathname === '/' || pathname === '' || pathname === '/v2' || pathname === '/v3' ||
         pathname.startsWith('/css/') || pathname.startsWith('/js/') || 
         pathname.startsWith('/assets/') || pathname.endsWith('.html')) {
-      const ghPath = (pathname === '/v2' || pathname === '/v3') ? '/' : pathname;
+      // /v2 → category_v2.html, /v3 → index.html (未来扩展), 其他保持原样
+      let ghPath = pathname;
+      if (pathname === '/v2') {
+        ghPath = '/category_v2.html';
+      } else if (pathname === '/' || pathname === '') {
+        ghPath = '/index.html';
+      }
       const ghUrl = 'https://lipengzhang123.github.io/lpz-test' + ghPath + '?_v=' + Date.now();
       try {
         const resp = await fetch(ghUrl, { cf: { cacheTtl: 0 } });
