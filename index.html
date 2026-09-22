@@ -543,11 +543,14 @@
             if (sessionId) headers['X-Session-Id'] = sessionId;
             const res = await fetch(url, { headers });
             const data = await res.json();
-            if (data.cases && Array.isArray(data.cases)) {
-                renderCases(data.cases);
+            // Worker返回格式: {errcode: 0, data: [...], total: xxx}
+            const cases = data.data || data.cases || [];
+            if (Array.isArray(cases) && cases.length > 0) {
+                renderCases(cases);
                 updatePills(data.counts || {});
             } else {
                 console.warn('[Cases] Invalid response:', data);
+                document.getElementById('noResult').style.display = 'block';
             }
         } catch (e) {
             console.error('[Cases] Load failed:', e);
