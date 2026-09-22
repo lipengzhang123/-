@@ -236,12 +236,23 @@ async function handleCasesRealtime(request, env, token) {
     const data = await res.json();
     
     // 【调试】记录原始API响应
-    console.log('[AITable] Raw response:', JSON.stringify(data).substring(0, 500));
+    console.log('[AITable] Raw response:', JSON.stringify(data));
 
     if (data.errorCode) {
       console.error('[AITable] API Error:', data);
       return jsonResponse({ errcode: 502, errmsg: data.errorMessage || 'AITable API Error', debug: data }, 502);
     }
+
+    // 【调试】检查响应结构
+    const debugInfo = {
+      allKeys: Object.keys(data),
+      resultKeys: data.result ? Object.keys(data.result) : null,
+      hasRecords: !!data.result?.records,
+      recordCount: data.result?.records?.length || 0,
+      totalCount: data.result?.totalCount,
+      fullResponse: JSON.stringify(data).substring(0, 1000)
+    };
+    console.log('[AITable] Debug info:', debugInfo);
 
     // 转换字段格式（与同步脚本逻辑一致）
     const CATEGORY_CODE_MAP = {
@@ -321,7 +332,7 @@ async function handleCasesRealtime(request, env, token) {
       total: data.result?.totalCount || records.length,
       page,
       size,
-      _debug: { rawResultKeys: Object.keys(data.result || {}), recordCount: records.length }
+      _debug: debugInfo
     });
   } catch (e) {
     console.error('[AITable] Exception:', e.message);
