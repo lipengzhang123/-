@@ -219,8 +219,27 @@ async function handleCasesRealtime(request, env, token) {
     const size = parseInt(url.searchParams.get('size') || '20');
     const tag = url.searchParams.get('tag') || '';
 
-    // 调用钉钉AI表格API查询记录（GET请求，无需body）
-    const aitableUrl = `https://api.dingtalk.com/v1.0/notable/bases/${env.AITABLE_BASE_ID}/sheets/${env.AITABLE_TABLE_ID}/records`;
+    // 【新增】从Cookie读取Session获取operatorId
+    let operatorId = null;
+    const cookie = request.headers.get('Cookie') || '';
+    const match = cookie.match(/sessionId=([^;]+)/);
+    const sessionId = match ? match[1] : null;
+    
+    if (sessionId) {
+      const userJson = await env.DINGTALK_KV.get(`session:${sessionId}`);
+      if (userJson) {
+        try {
+          const userInfo = JSON.parse(userJson);
+          operatorId = userInfo.userid;
+          console.log('[AITable] Found operatorId from session:', operatorId);
+        } catch (e) {
+          console.warn('[AITable] Failed to parse session:', e.message);
+        }
+      }
+    }
+
+    // 调用钉钉AI表格API查询记录（GET请求，需传入operatorId）
+    const aitableUrl = `https://api.dingtalk.com/v1.0/notable/bases/${env.AITABLE_BASE_ID}/sheets/${env.AITABLE_TABLE_ID}/records${operatorId ? `?operatorId=${encodeURIComponent(operatorId)}` : ''}`;
     const res = await fetch(aitableUrl, {
       method: 'GET',
       headers: {
