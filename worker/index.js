@@ -219,13 +219,18 @@ async function handleCasesRealtime(request, env, token) {
     const size = parseInt(url.searchParams.get('size') || '20');
     const tag = url.searchParams.get('tag') || '';
 
-    // 调用钉钉AI表格API查询记录（正确endpoint: /v1.0/notable/bases/{base_id}/sheets/{sheet_id}/records）
+    // 调用钉钉AI表格API查询记录（正确endpoint + POST请求）
     const aitableUrl = `https://api.dingtalk.com/v1.0/notable/bases/${env.AITABLE_BASE_ID}/sheets/${env.AITABLE_TABLE_ID}/records`;
     const res = await fetch(aitableUrl, {
-      method: 'GET',
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'x-acs-dingtalk-access-token': token
-      }
+      },
+      body: JSON.stringify({
+        maxResults: size,
+        offset: (page - 1) * size
+      })
     });
 
     const data = await res.json();
