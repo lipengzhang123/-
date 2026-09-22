@@ -434,7 +434,7 @@
     }
     window.scrollToTop = scrollToTop;
 
-    console.log("main.js v5 loaded, CASES length:", CASES.length);
+    console.log("main.js v5 loaded");
     
     // 更新JS状态指示器
     var jsStatus = document.getElementById('js-status');
@@ -443,6 +443,6 @@
         jsStatus.style.opacity = '1';
     }
     
-    // 直接从API加载实时数据（无需鉴权），失败则降级到本地数据
+    // 从API加载实时数据
     loadCasesFromBackend();
 })();
