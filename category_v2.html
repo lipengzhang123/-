@@ -880,18 +880,25 @@ var CASES = [
     // 从API加载实时案例数据
     async function loadCasesFromBackend() {
         try {
+            // 显示加载状态
+            if (caseGrid) caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">正在加载数据...</p>';
+            
             var res = await fetch('/api/cases?page=1&size=200');
             var json = await res.json();
+            
+            console.log('API Response:', json);
+            
             if (json.errcode === 0 && json.data && json.data.length > 0) {
                 window.CASES = json.data;
                 renderCases(categoryCode);
             } else {
-                throw new Error(json.errmsg || 'Empty response');
+                // API 返回成功但无数据
+                if (caseGrid) caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">暂无案例数据<br><small>（AI表格中暂无记录）</small></p>';
             }
         } catch (e) {
             console.error('Failed to load cases from backend:', e);
             // 降级提示
-            if (caseGrid) caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">数据加载失败，请刷新重试</p>';
+            if (caseGrid) caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">数据加载失败<br><small>' + e.message + '</small></p>';
         }
     }
     
