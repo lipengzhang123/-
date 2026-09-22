@@ -49,10 +49,7 @@ export default {
       }
     }
 
-    // 【安全】来源校验（允许空Origin，钉钉WebView常见）
-    if (origin && !origin.includes('hgkj.eu.cc') && !origin.includes('localhost') && !origin.includes('127.0.0.1')) {
-      return jsonResponse({ errcode: 403, errmsg: 'Forbidden Origin' }, 403);
-    }
+    // 【安全】来源校验已移除（由钉钉Token鉴权保障安全）
 
     // 【关键】处理 OPTIONS 预检请求（钉钉内置浏览器必需）
     if (request.method === 'OPTIONS') {
