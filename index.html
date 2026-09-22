@@ -491,16 +491,18 @@
             return;
         }
         try {
-            dd.runtime.permission.requestAuthCode({
-                corpId: 'ding53c7b55d07974d7335c2f4657eb6378f', // TODO: 替换为你的企业 CorpId
-                onSuccess: async function(result) {
-                    console.log('[DingTalk] AuthCode:', result.code);
-                    await exchangeSession(result.code);
-                },
-                onFail: function(err) {
-                    console.error('[DingTalk] requestAuthCode failed:', err);
-                    loadCases(); // 免登失败也尝试加载案例
-                }
+            dd.ready(function() {
+                dd.runtime.permission.requestAuthCode({
+                    corpId: 'ding53c7b55d07974d7335c2f4657eb6378f', // TODO: 替换为你的企业 CorpId
+                    onSuccess: async function(result) {
+                        console.log('[DingTalk] AuthCode:', result.code);
+                        await exchangeSession(result.code);
+                    },
+                    onFail: function(err) {
+                        console.error('[DingTalk] requestAuthCode failed:', err);
+                        loadCases(); // 免登失败也尝试加载案例
+                    }
+                });
             });
         } catch (e) {
             console.warn('[DingTalk] SDK not ready or error:', e);
