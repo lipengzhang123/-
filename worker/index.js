@@ -33,7 +33,7 @@ export default {
         
         // 【关键】禁止钉钉WebView缓存HTML和JS
         const newHeaders = new Headers(resp.headers);
-        if (pathname === '/' || pathname === '' || pathname.endsWith('.html') || pathname.startsWith('/js/')) {
+        if (pathname === '/' || pathname === '' || pathname === '/v2' || pathname === '/v3' || pathname.endsWith('.html') || pathname.startsWith('/js/')) {
           newHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate');
           newHeaders.set('Pragma', 'no-cache');
           newHeaders.set('Expires', '0');

@@ -860,6 +860,17 @@ var CASES = [
     var params = new URLSearchParams(window.location.search);
     var categoryCode = params.get('cat') || 'all';
     
+    // 【关键】先获取DOM元素，再执行任何操作
+    var caseGrid = document.getElementById("caseGrid");
+    var noResult = document.getElementById("noResult");
+    var modalOverlay = document.getElementById("modalOverlay");
+    var modal = document.getElementById("modal");
+    var modalBody = document.getElementById("modalBody");
+    var modalClose = document.getElementById("modalClose");
+    var backTop = document.getElementById("backTop");
+    var menuToggle = document.getElementById("menuToggle");
+    var mainNav = document.getElementById("mainNav");
+    
     // 更新页面标题和描述
     var titleEl = document.getElementById('categoryTitle');
     var descEl = document.getElementById('categoryDesc');
@@ -880,7 +891,7 @@ var CASES = [
         } catch (e) {
             console.error('Failed to load cases from backend:', e);
             // 降级提示
-            caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">数据加载失败，请刷新重试</p>';
+            if (caseGrid) caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">数据加载失败，请刷新重试</p>';
         }
     }
     
@@ -890,16 +901,6 @@ var CASES = [
     } else {
         loadCasesFromBackend();
     }
-    
-    var caseGrid = document.getElementById("caseGrid");
-    var noResult = document.getElementById("noResult");
-    var modalOverlay = document.getElementById("modalOverlay");
-    var modal = document.getElementById("modal");
-    var modalBody = document.getElementById("modalBody");
-    var modalClose = document.getElementById("modalClose");
-    var backTop = document.getElementById("backTop");
-    var menuToggle = document.getElementById("menuToggle");
-    var mainNav = document.getElementById("mainNav");
 
     var categoryName = (CATEGORY_MAP && CATEGORY_MAP[categoryCode]) ? CATEGORY_MAP[categoryCode] : "全部案例";
     document.getElementById("categoryTitle").textContent = categoryName;
