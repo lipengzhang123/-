@@ -49,8 +49,8 @@ export default {
       }
     }
 
-    // 【安全】来源校验
-    if (!origin.includes('hgkj.eu.cc') && !origin.includes('localhost') && !origin.includes('127.0.0.1')) {
+    // 【安全】来源校验（允许空Origin，钉钉WebView常见）
+    if (origin && !origin.includes('hgkj.eu.cc') && !origin.includes('localhost') && !origin.includes('127.0.0.1')) {
       return jsonResponse({ errcode: 403, errmsg: 'Forbidden Origin' }, 403);
     }
 
