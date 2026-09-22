@@ -348,85 +348,26 @@
         }
     };
 
-    /* ---------- 11. 钉钉免登与会话管理 ---------- */
-    
-    // 统一 API 请求封装（自动处理会话过期续期）
-    async function apiFetch(url, options) {
-        var res = await fetch(url, Object.assign({ credentials: 'include' }, options));
-        
-        // 【体验优化】会话过期自动重新免登
-        if (res.status === 401) {
-            console.warn('Session expired, re-authenticating...');
-            await initDingTalkAuth();
-            res = await fetch(url, Object.assign({ credentials: 'include' }, options));
-        }
-        
-        var data = await res.json();
-        if (data.errcode && data.errcode !== 0) {
-            throw new Error(data.errmsg || 'API Error');
-        }
-        return data;
-    }
-
-    // 初始化钉钉免登
-    function initDingTalkAuth() {
-        return new Promise(function(resolve, reject) {
-            if (typeof dd === 'undefined') {
-                console.warn('DingTalk JSAPI not available, skipping auth');
-                resolve();
-                return;
-            }
-            
-            dd.ready(function() {
-                dd.runtime.permission.requestAuthCode({
-                    corpId: CORP_ID,
-                    onSuccess: function(result) {
-                        apiFetch('/api/dingtalk/auth', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ authCode: result.code, corpId: CORP_ID })
-                        }).then(function(authData) {
-                            console.log('Auth success, userid:', authData.userid);
-                            // 【新增】将sessionId存入Cookie，供后续API请求使用
-                            if (authData.sessionId) {
-                                document.cookie = 'sessionId=' + authData.sessionId + '; path=/; max-age=3600';
-                                console.log('Session cookie set:', authData.sessionId);
-                            }
-                            resolve(authData);
-                        }).catch(reject);
-                    },
-                    onFail: function(err) {
-                        console.error('Get authCode failed:', err);
-                        reject(err);
-                    }
-                });
-            });
-        });
-    }
-
-    // 从后端加载案例数据（需先免登建立Session）
+    /* ---------- 11. 从静态JSON加载案例数据 ---------- */
     async function loadCasesFromBackend() {
         try {
-            // 1. 先确保钉钉免登完成，建立Session
-            await initDingTalkAuth();
-            
-            // 2. 使用 apiFetch 自动携带 Cookie 并处理401续期
-            var json = await apiFetch('/api/cases?page=1&size=200');
+            var res = await fetch('data/cases.json');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            var json = await res.json();
             
             if (json.data && json.data.length > 0) {
                 window.CASES = json.data;
                 updateCounts();
                 renderCases(currentFilter);
-                console.log('✅ Loaded', json.data.length, 'cases from AI Table');
+                console.log('✅ Loaded', json.data.length, 'cases from data/cases.json');
             } else {
-                throw new Error(json.errmsg || 'Empty response');
+                throw new Error('Empty response');
             }
         } catch (e) {
-            console.error(' Failed to load cases from backend:', e);
-            // ❗ 移除降级逻辑：API失败时显示错误提示，不使用本地硬编码数据
+            console.error(' Failed to load cases:', e);
             document.getElementById('caseGrid').innerHTML = 
                 '<div style="text-align:center;padding:60px 20px;color:#999;">' +
-                '<p style="font-size:18px;margin-bottom:12px;">⚠️ 数据加载失败</p>' +
+                '<p style="font-size:18px;margin-bottom:12px;">️ 数据加载失败</p>' +
                 '<p style="font-size:14px;">请检查网络连接或联系管理员</p>' +
                 '<p style="font-size:12px;margin-top:8px;color:#ccc;">' + e.message + '</p>' +
                 '</div>';
