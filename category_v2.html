@@ -856,6 +856,16 @@ var CASES = [
 (async function () {
     "use strict";
     
+    // 从URL参数获取分类代码
+    var params = new URLSearchParams(window.location.search);
+    var categoryCode = params.get('cat') || 'all';
+    
+    // 更新页面标题和描述
+    var titleEl = document.getElementById('categoryTitle');
+    var descEl = document.getElementById('categoryDesc');
+    if (titleEl) titleEl.textContent = CATEGORY_MAP[categoryCode] || '全部案例';
+    if (descEl) descEl.textContent = '查看' + (CATEGORY_MAP[categoryCode] || '全部') + '的改善案例';
+    
     // 从API加载实时案例数据
     async function loadCasesFromBackend() {
         try {
