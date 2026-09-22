@@ -235,10 +235,13 @@ async function handleCasesRealtime(request, env, token) {
     });
 
     const data = await res.json();
+    
+    // 【调试】记录原始API响应
+    console.log('[AITable] Raw response:', JSON.stringify(data).substring(0, 500));
 
     if (data.errorCode) {
       console.error('[AITable] API Error:', data);
-      return jsonResponse({ errcode: 502, errmsg: data.errorMessage || 'AITable API Error' }, 502);
+      return jsonResponse({ errcode: 502, errmsg: data.errorMessage || 'AITable API Error', debug: data }, 502);
     }
 
     // 转换字段格式（与同步脚本逻辑一致）
@@ -318,7 +321,8 @@ async function handleCasesRealtime(request, env, token) {
       data: cases,
       total: data.result?.totalCount || records.length,
       page,
-      size
+      size,
+      _debug: { rawResultKeys: Object.keys(data.result || {}), recordCount: records.length }
     });
   } catch (e) {
     console.error('[AITable] Exception:', e.message);
