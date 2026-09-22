@@ -115,66 +115,6 @@ const CATEGORY_MAP = {
 var CASES = []; // 由下方 loadCasesFromBackend() 异步填充
 // ===== 数据结束 =====
 
-(async function () {
-    "use strict";
-    
-    // 从URL参数获取分类代码
-    var params = new URLSearchParams(window.location.search);
-    var categoryCode = params.get('cat') || 'all';
-    
-    // 【关键】先获取DOM元素，再执行任何操作
-    var caseGrid = document.getElementById("caseGrid");
-    var noResult = document.getElementById("noResult");
-    var modalOverlay = document.getElementById("modalOverlay");
-    var modal = document.getElementById("modal");
-    var modalBody = document.getElementById("modalBody");
-    var modalClose = document.getElementById("modalClose");
-    var backTop = document.getElementById("backTop");
-    var menuToggle = document.getElementById("menuToggle");
-    var mainNav = document.getElementById("mainNav");
-    
-    // 更新页面标题和描述
-    var titleEl = document.getElementById('categoryTitle');
-    var descEl = document.getElementById('categoryDesc');
-    if (titleEl) titleEl.textContent = CATEGORY_MAP[categoryCode] || '全部案例';
-    if (descEl) descEl.textContent = '查看' + (CATEGORY_MAP[categoryCode] || '全部') + '的改善案例';
-    
-    // 从静态JSON加载实时案例数据
-    async function loadCasesFromBackend() {
-        try {
-            // 显示加载状态
-            if (caseGrid) caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">正在加载数据...</p>';
-            
-            var res = await fetch('data/cases.json');
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            var json = await res.json();
-            
-            console.log('Loaded cases:', json.data ? json.data.length : 0);
-            
-            if (json.data && json.data.length > 0) {
-                window.CASES = json.data;
-                renderCases(categoryCode);
-            } else {
-                if (caseGrid) caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">暂无案例数据<br><small>（AI表格中暂无记录）</small></p>';
-            }
-        } catch (e) {
-            console.error('Failed to load cases:', e);
-            if (caseGrid) caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">数据加载失败<br><small>' + e.message + '</small></p>';
-        }
-    }
-            "措施：对比验证新供应商工艺及产品，合格后逐步减少并替代原供应商采购份额。"
-        ],
-        "results": [
-            {
-                "num": "20%",
-                "label": "按每年 的替代量，预计全年降本收益可达60万元"
-            },
-            {
-                "num": "100%",
-                "label": "按 全替代，预计降本达325万元"
-            }
-        ]
-    },
     {
         "id": 12,
         "title": "环氧胶单支用量降低",
@@ -554,12 +494,13 @@ var CASES = []; // 由下方 loadCasesFromBackend() 异步填充
             // 显示加载状态
             if (caseGrid) caseGrid.innerHTML = '<p style="text-align:center;color:#666;padding:40px;">正在加载数据...</p>';
             
-            var res = await fetch('/api/cases?page=1&size=200');
+            var res = await fetch('data/cases.json');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
             var json = await res.json();
             
-            console.log('API Response:', json);
+            console.log('Loaded cases:', json.data ? json.data.length : 0);
             
-            if (json.errcode === 0 && json.data && json.data.length > 0) {
+            if (json.data && json.data.length > 0) {
                 window.CASES = json.data;
                 renderCases(categoryCode);
             } else {
